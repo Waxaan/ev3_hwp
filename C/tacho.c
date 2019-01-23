@@ -1,55 +1,22 @@
-/*
-     ____ __     ____   ___    ____ __         (((((()
-    | |_  \ \  /   ) ) | |  ) | |_  \ \  /  \(@)- /
-    |_|__  \_\/  __)_) |_|_/  |_|__  \_\/   /(@)- \
-                                               ((())))
- *//**
- *  \file  tacho.c
- *  \brief  ev3dev-c Tacho Motors example.
- *  \author  Vitaly Kravtsov (in4lio@gmail.com)
- *  \copyright  See the LICENSE file.
- */
-
 #include <stdio.h>
 #include "ev3.h"
 #include "ev3_port.h"
 #include "ev3_tacho.h"
-
-// WIN32 /////////////////////////////////////////
-#ifdef __WIN32__
-
-#include <windows.h>
-
-// UNIX //////////////////////////////////////////
-#else
-
 #include <unistd.h>
 #define Sleep( msec ) usleep(( msec ) * 1000 )
 
-//////////////////////////////////////////////////
-#endif
+#include <inttypes.h>
 
 int main( void )
 {
 	int i;
 	uint8_t sn;
+	uint8_t Mmotor;
+	uint8_t Lmotor;
 	FLAGS_T state;
 	char s[ 256 ];
 
-#ifndef __ARM_ARCH_4T__
-	/* Disable auto-detection of the brick (you have to set the correct address below) */
-	ev3_brick_addr = "192.168.0.204";
-
-#endif
 	if ( ev3_init() == -1 ) return ( 1 );
-
-#ifndef __ARM_ARCH_4T__
-	printf( "The EV3 brick auto-detection is DISABLED,\nwaiting %s online with plugged tacho...\n", ev3_brick_addr );
-
-#else
-	printf( "Waiting tacho is plugged...\n" );
-
-#endif
 	while ( ev3_tacho_init() < 1 ) Sleep( 1000 );
 
 	printf( "*** ( EV3 ) Hello! ***\n" );
@@ -58,10 +25,32 @@ int main( void )
 	for ( i = 0; i < DESC_LIMIT; i++ ) {
 		if ( ev3_tacho[ i ].type_inx != TACHO_TYPE__NONE_ ) {
 			printf( "  type = %s\n", ev3_tacho_type( ev3_tacho[ i ].type_inx ));
-			printf( "  port = %s\n", ev3_tacho_port_name( i, s ));
+			printf( "  port = %s\n", ev3_port_port_name( i, s ));
+			printf( "  %" PRIu8 "\n", sn);
+			printf( "  %i\n", sn);
 		}
 	}
-	if ( ev3_search_tacho( LEGO_EV3_M_MOTOR, &sn, 0 )) {
+	if ( ev3_search_tacho( LEGO_EV3_M_MOTOR, &Mmotor, 0)) {
+		int max_speed;
+		printf( "found M Motor\n");
+		get_tacho_max_speed( Mmotor, &max_speed );
+		printf("  max_speed = %d\n", max_speed );
+		set_tacho_stop_action_inx( Mmotor, TACHO_COAST );
+		set_tacho_speed_sp( Mmotor, max_speed );
+		set_tacho_time_sp( Mmotor, 5000 );
+		set_tacho_command_inx( Mmotor, TACHO_RUN_TIMED );
+	}
+	if ( ev3_search_tacho( LEGO_EV3_L_MOTOR, &Lmotor, 1)) {
+		int max_speed;
+		printf( "found an additional L Motor\n");
+		get_tacho_max_speed( Lmotor, &max_speed );
+		printf("  max_speed = %d\n", max_speed );
+		set_tacho_stop_action_inx( Lmotor, TACHO_COAST );
+		set_tacho_speed_sp( Lmotor, max_speed * 1 / 3 );
+		set_tacho_time_sp( Lmotor, 10000 );
+		set_tacho_command_inx( Lmotor, TACHO_RUN_TIMED );
+	}
+	if ( ev3_search_tacho( LEGO_EV3_L_MOTOR, &sn, 0 )) {
 		int max_speed;
 
 		printf( "LEGO_EV3_M_MOTOR is found, run for 5 sec...\n" );
@@ -88,7 +77,7 @@ int main( void )
 			Sleep( 500 );
 		}
 	} else {
-		printf( "LEGO_EV3_M_MOTOR is NOT found\n" );
+		printf( "LEGO_EV3_L_MOTOR is NOT found\n" );
 	}
 	ev3_uninit();
 	printf( "*** ( EV3 ) Bye! ***\n" );
