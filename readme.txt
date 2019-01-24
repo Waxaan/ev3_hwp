@@ -38,9 +38,32 @@ Pushen
 
 
 ##############
+ Build-chain
+##############
+
+komfortabel mit VSCode(mit ev3dev extension) [hier $] und einem Terminal-Fenster [hier >]
+
+$scp path/to/main.c robot@ev3dev.local:/home/robot/ev3_hwp/
+$password = maker
+
+>ssh robot@ev3dev.local
+>password = maker
+>cd /home/robot/ev3_hwp/
+>gcc main.c -lev3dev-c -o main && ./main
+
+
+
+
+
+
+
+##############
 	Docker
 ##############
 Was ist Docker? 
+NIEMAND WILL DOCKER!
+
+
 Eine virtuelle Programmierumgebung, in der alle benötigten Librarys, compiler, etc vorliegen
 und nichts per Hand nachinstalliert/aktuellsiert werden muss!
 
