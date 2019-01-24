@@ -16,5 +16,6 @@
 int main(void) {
 	printf("Hewwo World! UwU\n");
 	ev3_init();
+	Sleep(5000);
 	return 0;
 }
