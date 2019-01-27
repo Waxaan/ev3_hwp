@@ -41,15 +41,19 @@ int main(void)
 	//TACHO_HOLDING = 4
 	//TACHO_OVERLOADED = 8
 	//TACHO_STALLED = 16
-	//printf("TACHO_STALLING %i\n", TACHO_STALLED);
+
+	// USE BITWISE AND OPERATOR (&) TO CHECK FLAGS
 
 	size_t size = count_lines("xycoord_v4.txt");
 
 	int16_t data_array[size][2];
+
 	parse_file("xycoord_v4.txt", data_array, size);
-	//print_array2d(data_array,size);
+
 	printf("Scaling coordinates to fit into DinA4!\n");
+
 	scale_coordinates(data_array, size, DINA4_X, DINA4_Y);
+
 	int stiftUp = 1;
 	uint8_t Kette, Fahrwerk, Stift;
 	int maxKette, maxFahrwerk, maxStift;
@@ -63,10 +67,12 @@ int main(void)
 	printf("*** ( EV3 ) Hello! ***\n");
 
 	//setze die Ports und Geschindigkeit der Kette, Fahrwerk und des Stifts
-	if (ev3_search_tacho(LEGO_EV3_L_MOTOR, &Kette, 0) &&
-		ev3_search_tacho(LEGO_EV3_L_MOTOR, &Fahrwerk, 1) &&
-		ev3_search_tacho(LEGO_EV3_M_MOTOR, &Stift, 0))
+
+	if( (ev3_search_tacho( LEGO_EV3_L_MOTOR, &Fahrwerk,    0))
+	 &&	(ev3_search_tacho( LEGO_EV3_L_MOTOR, &Kette,	1)) 
+	 && (ev3_search_tacho( LEGO_EV3_M_MOTOR, &Stift,    0))	)
 	{
+		//printf("KETTE: %i\nFAHRWERK: %i\nSTIFT: %i\n",Kette, Fahrwerk, Stift);
 
 		printf("Alles gefunden!\n");
 
@@ -82,15 +88,16 @@ int main(void)
 		printf("Mindestens einen Motor nicht gefunden!\n");
 		return (1);
 	}
-	
 
 	printf("Kalibriere Stift!\n");
 	calibrate_pen(Stift, maxStift);
 	printf("Done!\n");
-
+	set_tacho_command_inx(Kette, TACHO_STOP);
 	printf("Kalibriere Kette\n!");
 	calibrate_track(Kette, maxKette);
 	printf("Done!\n");
+
+	reset_motors(Kette, Fahrwerk, Stift);
 
 	for(int i = 0; i < size; i++) {
 		if(data_array[i][0] == -1) {
@@ -122,7 +129,7 @@ int main(void)
 				get_tacho_state_flags(Kette, &state); //checking if reached maximum/minimum
 				//printf("State of Kette %i: \n",state);
 			}
-			//Sleep(TIME);
+			Sleep(1000);
 
 			if(stiftUp==1){
 				printf("Lowering Pen!\n");
@@ -135,7 +142,7 @@ int main(void)
 
 	printf("Lifting Pen!\n");
 	move_pen(Stift, "lift", maxStift);
-
+	
 	reset_motors(Kette, Fahrwerk, Stift);
 	ev3_uninit();
 	printf("*** ( EV3 ) Bye! ***\n");
@@ -206,7 +213,7 @@ int calibrate_pen(uint8_t port, int speed) // TODO: FIX
 	set_tacho_position_sp(port, 800);
 
 	set_tacho_command_inx(port, TACHO_RUN_TO_REL_POS);
-	
+
 	Sleep(3000);
 
 	printf("HIT BOTTOM WITH PEN! LIFTING AGAIN!");
@@ -240,11 +247,14 @@ int calibrate_track(uint8_t port, int speed)
 	printf("HIT THE RIGHT BORDER\n");
 
 	set_tacho_command_inx(port, TACHO_STOP);
-
 	set_tacho_polarity(port, "normal");
-	set_tacho_position_sp(port, 25);
+	set_tacho_position_sp(port, 35);
 	set_tacho_command_inx(port, TACHO_RUN_TO_REL_POS);
 	Sleep(2000);
+
+	//int pos = 0;
+	//get_tacho_position_sp(port, pos);
+	//printf("pos: %i", pos);
 }
 
 int is_running(uint8_t port)
@@ -432,12 +442,6 @@ void print_array2d(int16_t arr[][2], size_t size)
 	for (int i = 0; i < size; i++)
 		printf("%i,%i\n", arr[i][0], arr[i][1]);
 }
-
-
-
-
-
-
 
 void set_motor(uint8_t port, int mode, float speed, int16_t pos)
 {
