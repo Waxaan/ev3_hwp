@@ -44,11 +44,11 @@ int main(void)
 
 	// USE BITWISE AND OPERATOR (&) TO CHECK FLAGS
 
-	size_t size = count_lines("xycoord_v4.txt");
+	size_t size = count_lines("xycoord_v5.txt");
 
 	int16_t data_array[size][2];
 
-	parse_file("xycoord_v4.txt", data_array, size);
+	parse_file("xycoord_v5.txt", data_array, size);
 
 	printf("Scaling coordinates to fit into DinA4!\n");
 
@@ -156,12 +156,12 @@ void move_pen(uint8_t port, char *buf, int maxSpeed)
 	if (strcmp("lift", buf) == 0)
 	{
 		set_tacho_speed_sp(port, maxSpeed);
-		set_tacho_position_sp(port, -500); // (Ausprobieren welcher DEGREEinput gut)
+		set_tacho_position_sp(port, -400); // (Ausprobieren welcher DEGREEinput gut)
 	}
 	else if (strcmp("down", buf) == 0)
 	{
 		set_tacho_speed_sp(port, maxSpeed);
-		set_tacho_position_sp(port, 550); // (Ausprobieren welcher DEGREEinput gut)
+		set_tacho_position_sp(port, 400); // (Ausprobieren welcher DEGREEinput gut)
 	}
 
 	set_tacho_command_inx(port, TACHO_RUN_TO_REL_POS);
@@ -170,6 +170,8 @@ void move_pen(uint8_t port, char *buf, int maxSpeed)
 	{
 		//pause
 	}
+
+	set_tacho_command_inx(port, TACHO_RESET);
 }
 
 void set_kette(uint8_t port, int mode, float speed, int16_t pos)
@@ -210,17 +212,19 @@ int calibrate_pen(uint8_t port, int speed) // TODO: FIX
 	set_tacho_speed_sp(port, speed);
 	FLAGS_T state = TACHO_STATE__NONE_;
 
-	set_tacho_position_sp(port, 800);
+	set_tacho_position_sp(port, 650);
 
 	set_tacho_command_inx(port, TACHO_RUN_TO_REL_POS);
 
 	Sleep(3000);
+	set_tacho_command_inx(port, TACHO_RESET);
 
 	printf("HIT BOTTOM WITH PEN! LIFTING AGAIN!");
 
 	set_tacho_speed_sp(port, speed);
 	set_tacho_position_sp(port, -500); // (Ausprobieren welcher DEGREEinput gut)
 	set_tacho_command_inx(port, TACHO_RUN_TO_REL_POS);
+	Sleep(3000);
 }
 
 int calibrate_track(uint8_t port, int speed)
@@ -248,7 +252,7 @@ int calibrate_track(uint8_t port, int speed)
 
 	set_tacho_command_inx(port, TACHO_STOP);
 	set_tacho_polarity(port, "normal");
-	set_tacho_position_sp(port, 35);
+	set_tacho_position_sp(port, -55);
 	set_tacho_command_inx(port, TACHO_RUN_TO_REL_POS);
 	Sleep(2000);
 
@@ -378,7 +382,7 @@ void scale_coordinates(int16_t arr[][2], size_t size, uint16_t max_x, uint16_t m
 			highest_y = arr[i][1];
 	}
 
-	printf("Highest values are:\nX: %i (Allowed: X: %i)\nY: %i (Allowed: Y: %i)\n", highest_x, max_x, highest_y, max_y);
+	printf("Highest values are:\nX: %lf (Allowed: X: %i)\nY: %lf (Allowed: Y: %i)\n", highest_x, max_x, highest_y, max_y);
 
 	if (highest_x < max_x && highest_y < max_y)
 	{ //if there is no coordinate that surpasses the boundary
