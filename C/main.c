@@ -157,12 +157,12 @@ void move_pen(uint8_t port, char *buf, int maxSpeed)
 	if (strcmp("lift", buf) == 0)
 	{
 		set_tacho_speed_sp(port, maxSpeed);
-		set_tacho_position_sp(port, -400); // (Ausprobieren welcher DEGREEinput gut)
+		set_tacho_position_sp(port, -410); // (Ausprobieren welcher DEGREEinput gut)
 	}
 	else if (strcmp("down", buf) == 0)
 	{
 		set_tacho_speed_sp(port, maxSpeed);
-		set_tacho_position_sp(port, 400); // (Ausprobieren welcher DEGREEinput gut)
+		set_tacho_position_sp(port, 410); // (Ausprobieren welcher DEGREEinput gut)
 	}
 
 	set_tacho_command_inx(port, TACHO_RUN_TO_REL_POS);
